@@ -13,6 +13,8 @@ section .data
     scream db 'AHHHHHHHH', 0x0
     sceamlen equ $-scream
     
+    pecho db "/bin/echo"
+    pecholen equ $-pecho
 section .bss
     BUFFER resq 8 ;THE CHINESE ARE HERE
 
@@ -22,11 +24,7 @@ section .text
     global _start
 
 _start:
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, welscr
-    mov rdx, scrlen
-    syscall
+    call startsetup
     xor rax, rax
     xor rdi, rdi
     xor r8, r8
@@ -51,13 +49,17 @@ _start:
 
     ; --- Check for "clear" ---
     mov eax, [BUFFER]            ;same thing
-    cmp eax, 'clea'              ;evil buffer buffer waffle
-    cmp byte  [BUFFER + 4], 'r'  ;now we cant exactly just check buffer, buffer is clea and it checks if buffer + 'r' (r is a string btw is equal to clear because of 'r')
+    shl rax, 16                  ;required genocide
+    shr rax, 16                  ;i hate that i dont understand what these do  
+    mov rbx, 'clear'
+    cmp rax, rbx                 ;evil buffer buffer waffle
     je _clear                    ; if it matches jump to the _clear procedure
-    
-    mov eax, [BUFFER]               ;same thing you know what it is!
-    cmp eax, 'scre'                 ;say it with me..
-    cmp word [BUFFER + 4], 'am'    ;i dont know
+
+    mov rax, [BUFFER]               ;same thing you know what it is!
+    shl rax, 16                     ;required genocide
+    shr rax, 16 
+    mov rbx, 'scream'
+    cmp rax, rbx                    ;say it with me..
     je _scream                      ; im copy and pasting the clear command and changing it up
     
     
@@ -85,6 +87,7 @@ _scream:
     syscall
     jmp _scream
 
+
 _clear:
     mov rax, 1                      ; sys_write
     mov rdi, 1                      ; stdout
@@ -100,3 +103,16 @@ _exit:
     mov rax, 60
     xor rdi, rdi
     syscall
+
+_startsetup
+    mov rax, 1                      ; sys_write
+    mov rdi, 1                      ; stdout
+    mov rsi, clsseq                 ; bytes to print
+    mov rdx, clslen                 ; length (7)
+    syscall
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, welscr
+    mov rdx, scrlen
+    syscall
+    ret ;what the hail bro vscode.dev got no drip :( no syntax highlighting either i aint setin that up
